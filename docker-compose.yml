@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'avaliacao1'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - db_volume:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+volumes:
+  db_volume:
+    driver: local
