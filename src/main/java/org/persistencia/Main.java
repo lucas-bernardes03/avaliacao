@@ -28,13 +28,17 @@ public class Main {
                     universidadeServico.buscarPorNome(input);
                     break;
                 case 2:
-                    System.out.println("BUSCA POR NOME E ANO");
+                    System.out.print("Digite o Nome: ");
+                    String nomeCurso = sc.nextLine();
+                    System.out.print("Digite o Ano: ");
+                    String ano = sc.nextLine();
+                    universidadeServico.buscarPorNomeAno(nomeCurso, ano);
                     break;
                 case 3:
-                    System.out.println("LISTAR TODOS OS CURSOS");
+                    universidadeServico.listarTodosCursos();
                     break;
                 case 4:
-                    System.out.println("EXPORTAR PARA O BANCO");
+                    universidadeServico.inserirCursos();
                     break;
                 case 5:
                     break;

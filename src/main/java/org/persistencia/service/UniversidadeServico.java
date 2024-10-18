@@ -10,6 +10,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +47,9 @@ public class UniversidadeServico {
         List<Curso> filtro;
 
         if(nome.isEmpty() || nome.isBlank()) filtro = cursos;
-        else filtro = cursos.stream().filter(c -> c.getNome().toLowerCase().contains(nome.toLowerCase())).toList();
+        else {
+            filtro = cursos.stream().filter(c -> c.getNome().toLowerCase().contains(nome.toLowerCase()) || c.getDisciplina().getNome().toLowerCase().contains(nome)).toList();
+        }
 
         if(filtro.isEmpty()){
             System.out.println("Nenhum curso encontrado.");
@@ -55,7 +59,81 @@ public class UniversidadeServico {
         for(Curso curso : filtro) {
             System.out.println(curso);
         }
+        System.out.println("Foram encontrados: " + filtro.size() + " cursos");
+    }
+
+    public void buscarPorNomeAno(String nome, String ano){
+        try{
+            Integer anoInt = Integer.parseInt(ano);
+
+            List<Curso> filtro = cursos.stream().filter(c -> c.getAno().equals(anoInt)).toList();
+            if(!nome.isEmpty() && !nome.isBlank()) filtro = filtro.stream().filter(c -> c.getNome().toLowerCase().contains(nome.toLowerCase())).toList();
+
+            if(filtro.isEmpty()){
+                System.out.println("Nenhum curso encontrado.");
+                return;
+            }
+
+            for(Curso curso : filtro) {
+                System.out.println(curso);
+            }
+            System.out.println("Foram encontrados: " + filtro.size() + " cursos");
+        }
+        catch (NumberFormatException e){
+            System.out.println("Número inválido");
+        }
+    }
+
+    public void listarTodosCursos(){
+        for(Curso curso : cursos) {
+            System.out.println(curso);
+        }
+
         System.out.println("Foram encontrados: " + cursos.size() + " cursos");
+    }
+
+
+    public void inserirCursos(){
+        PreparedStatement psCurso;
+        PreparedStatement psDisciplina;
+
+        try{
+            String sqlCurso = "INSERT INTO CURSO (IDEN, ANO, NOME) VALUES (?, ?, ?)";
+
+            String sqlDisciplina = "INSERT INTO DISCIPLINA (NOME, CH, IDEN_CURSO) VALUES (?, ?, ?)";
+
+            connection.setAutoCommit(false);
+            psCurso = connection.prepareStatement(sqlCurso);
+            psDisciplina = connection.prepareStatement(sqlDisciplina);
+
+            for(Curso curso : cursos){
+                psCurso.setInt(1, curso.getIden());
+                psCurso.setInt(2, curso.getAno());
+                psCurso.setString(3, curso.getNome());
+                psCurso.addBatch();
+
+                psDisciplina.setString(1, curso.getDisciplina().getNome());
+                psDisciplina.setInt(2, curso.getDisciplina().getCh());
+                psDisciplina.setInt(3, curso.getIden());
+                psDisciplina.addBatch();
+            }
+
+            psCurso.executeBatch();
+            connection.commit();
+            psDisciplina.executeBatch();
+            connection.commit();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            }
+            catch (SQLException sqlException){
+                System.out.printf("ERRO AO REALIZAR ROLLBACK: " + sqlException.getMessage());
+            }
+        }
+        System.out.println("----------------------------------------");
+        System.out.println("CURSOS INSERIDOS NO BANCO DE DADOS!");
     }
 
     private static void lerXml(){
